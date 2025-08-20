@@ -1,21 +1,27 @@
-# Architecture Diagram
-
-```mermaid
 flowchart LR
-  subgraph Local[Local Dev - Docker Compose]
+  %% ───── Local Dev (Docker Compose) ─────
+  subgraph Local["Local Dev — Docker Compose"]
     Web[FastAPI Web App] -->|reads/writes| DB[(Postgres)]
     Web --> Redis[(Redis)]
     Prom[Prometheus] -->|scrapes| Web
     Prom -->|scrapes| NodeExp[Node Exporter]
-    Prom -->|scrapes| cAdvisor[cAdvisor]
     Graf[Grafana] --> Prom
   end
 
-  subgraph IaC[OpenTofu - AWS design (no apply)]
+  %% ───── IaC (OpenTofu, plan‑only) ─────
+  subgraph IaC["OpenTofu — AWS design (plan‑only, no apply)"]
+    direction TB
     VPC[VPC]
-    Sub1[Public Subnet A] --> IGW[Internet Gateway]
-    Sub2[Public Subnet B] --> IGW
-    EC2[EC2 Instance] -->|in| Sub1
-    SG[Security Group] --> EC2
+    Sub1[Public Subnet A]
+    Sub2[Public Subnet B]
+    IGW[Internet Gateway]
+    SG[Security Group]
+    EC2[EC2 Instance]
+
+    VPC --- Sub1
+    VPC --- Sub2
+    Sub1 --> IGW
+    Sub2 --> IGW
+    SG --> EC2
+    EC2 --> Sub1
   end
-```
