@@ -10,7 +10,7 @@ flowchart LR
   end
 
   %% ----- IaC (OpenTofu, plan-only) -----
-  subgraph IaC["OpenTofu — AWS design (plan-only, no apply)"]
+  subgraph IaC["OpenTofu — AWS design
     direction TB
     VPC[VPC]
     Sub1[Public Subnet A]
