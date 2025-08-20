@@ -1,3 +1,4 @@
+```mermaid
 flowchart LR
   %% ----- Local Dev (Docker Compose) -----
   subgraph Local["Local Dev — Docker Compose"]
@@ -8,8 +9,8 @@ flowchart LR
     Graf[Grafana] --> Prom
   end
 
-  %% ----- IaC (OpenTofu, plan‑only) -----
-  subgraph IaC["OpenTofu — AWS design (plan‑only, no apply)"]
+  %% ----- IaC (OpenTofu, plan-only) -----
+  subgraph IaC["OpenTofu — AWS design (plan-only, no apply)"]
     direction TB
     VPC[VPC]
     Sub1[Public Subnet A]
