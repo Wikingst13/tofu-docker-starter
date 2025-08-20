@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  AWS_ACCESS_KEY_ID: test
+  AWS_SECRET_ACCESS_KEY: test
+  AWS_DEFAULT_REGION: us-east-1
+  DOCKER_BUILDKIT: 1
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tofu:
+    name: OpenTofu validate & plan (${{ matrix.env }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: [dev, staging, prod]
+    defaults:
+      run:
+        working-directory: infra/envs/${{ matrix.env }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+      
+
+      - name: Init
+        run: tofu init -input=false
+
+      - name: Format check
+        run: tofu fmt -check
+
+      - name: Validate
+        run: tofu validate
+
+      - name: Plan (${{ matrix.env }})
+        run: |
+          tofu plan \
+            -input=false -lock=false -refresh=false \
+            -var-file=${{ matrix.env }}.tfvars \
+            -out=plan_${{ matrix.env }}.out
+          tofu show -json plan_${{ matrix.env }}.out > plan_${{ matrix.env }}.json
+
+      - name: Upload plan artifact (${{ matrix.env }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: tofu-plan-${{ matrix.env }}
+          path: infra/envs/${{ matrix.env }}/plan_${{ matrix.env }}.json
+
+  docker_build:
+    name: Build Docker image
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build web image
+        run: docker build -t web:ci -f web/Dockerfile web
+
+      - name: Save image as artifact (optional)
+        run: |
+          docker save web:ci | gzip > web-image.tar.gz
+      - name: Upload image artifact (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-image
+          path: app/web-image.tar.gz
+
+  security:
+    name: Basic security scans
+    runs-on: ubuntu-latest
+    needs: [docker_build]
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lint Dockerfile (Hadolint)
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: app/web/Dockerfile
+
+     
+      - name: Setup Trivy
+        uses: aquasecurity/setup-trivy@v0.2.2
+
+      - name: Trivy config scan (IaC)
+        run: trivy config --exit-code 1 --severity HIGH,CRITICAL infra || true
+
+      - name: Build image for scan
+        run: docker build -t web:ci -f web/Dockerfile web
+
+      - name: Trivy image scan
+        run: trivy image --exit-code 1 --severity HIGH,CRITICAL web:ci || true
