@@ -1,5 +1,5 @@
 flowchart LR
-  %% ───── Local Dev (Docker Compose) ─────
+  %% ----- Local Dev (Docker Compose) -----
   subgraph Local["Local Dev — Docker Compose"]
     Web[FastAPI Web App] -->|reads/writes| DB[(Postgres)]
     Web --> Redis[(Redis)]
@@ -8,7 +8,7 @@ flowchart LR
     Graf[Grafana] --> Prom
   end
 
-  %% ───── IaC (OpenTofu, plan‑only) ─────
+  %% ----- IaC (OpenTofu, plan‑only) -----
   subgraph IaC["OpenTofu — AWS design (plan‑only, no apply)"]
     direction TB
     VPC[VPC]

@@ -8,4 +8,4 @@ ssh_ingress_cidrs = ["0.0.0.0/0"]
 key_name          = null
 
 
-instance_ami  = "ami-1234567890abcdef0"
+instance_ami = "ami-1234567890abcdef0"
