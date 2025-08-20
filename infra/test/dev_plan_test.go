@@ -1,7 +1,7 @@
 package test
 
 import (
-  "os"
+  
   "testing"
 
   terratestTerraform "github.com/gruntwork-io/terratest/modules/terraform"
