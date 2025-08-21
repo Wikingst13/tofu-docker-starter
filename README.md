@@ -69,10 +69,10 @@ infra/envs/staging/plan_staging.json
 infra/envs/prod/plan_prod.json
 ```
 ## Destroy infrastructure
-To simulate deletion of all resources:
+To simulate deletion of all resources for instance on dev env:
 ```bash
 tofu destroy -var-file=dev.tfvars
----
+```
 
 ### 3) Local CI checks
 Build and test the web image:
