@@ -68,7 +68,10 @@ infra/envs/dev/plan_dev.json
 infra/envs/staging/plan_staging.json
 infra/envs/prod/plan_prod.json
 ```
-
+## Destroy infrastructure
+To simulate deletion of all resources:
+```bash
+tofu destroy -var-file=dev.tfvars
 ---
 
 ### 3) Local CI checks
@@ -118,7 +121,25 @@ trivy image local/web:dev
 ```
 
 ---
+## 📝 Technical Decisions
+
+- **OpenTofu** (Terraform-compatible, open-source). Local backend for reproducibility; no remote state.
+- **Multi-env as folders** (dev/staging/prod) — clearer than workspaces for reviewability.
+- **No `apply` in CI**: plans only, with dummy AWS creds and pinned provider versions via lock files.
+- **Docker Compose** for local stack parity (web + db + cache + observability).
+- **Observability**: Prometheus scrapes the app and node-exporter; Grafana has a minimal “Web App Essentials” dashboard + Node Exporter Full (#1860).
+- **Docs-as-code**: Mermaid architecture in `ARCHITECTURE.md`, README updated alongside code; dashboards provisioned from JSON.
+- **Security & linting**: Hadolint on Dockerfile; Trivy scans for IaC & image (optional strict mode by removing `|| true`).
+
+---
 
 
+## ✅ Requirements & prerequisites
 
+- Docker + Docker Compose
+- OpenTofu ≥ 1.6
+- (Optional) Go ≥ 1.22 for Terratest
+- (Optional) Hadolint / Trivy for local lint/scans
+
+---
 
